@@ -1,0 +1,35 @@
+workflows:
+  hdb-market-android:
+    name: HDB Market Android APK
+    max_build_duration: 60
+    instance_type: linux_x2
+
+    environment:
+      flutter: stable
+
+    scripts:
+      - name: Extract HDB Market project
+        script: |
+          rm -rf hdb_src
+          mkdir hdb_src
+          python3 -m zipfile -e HDB_Market_CLOUD_READY.zip hdb_src
+
+      - name: Generate Android project
+        script: |
+          cd hdb_src
+          flutter create --org com.hdbmarket --project-name hdb_market --platforms=android .
+
+      - name: Install packages
+        script: |
+          cd hdb_src
+          flutter pub get
+
+      - name: Build APK
+        script: |
+          cd hdb_src
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL="${SUPABASE_URL}" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="${SUPABASE_PUBLISHABLE_KEY}"
+
+    artifacts:
+      - hdb_src/build/app/outputs/flutter-apk/app-release.apk
